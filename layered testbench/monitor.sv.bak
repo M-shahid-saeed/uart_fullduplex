@@ -1,0 +1,39 @@
+`include "transaction.sv"
+
+class monitor;
+    virtual uart_intf vif;
+    mailbox mon2scb;
+
+    function new(virtual uart_intf vif, mailbox mon2scb);
+        this.vif = vif;
+        this.mon2scb = mon2scb;
+    endfunction
+
+    task run();
+        forever begin
+            // Hum har clock pe check karenge
+            @(posedge vif.clk);
+
+            // --- CHECK SIDE A RECEIVER ---
+            // Agar Side A ke FIFO ka Write Enable high hai, matlab data andar ja raha hai
+            if (vif.spy_rx_valid_A == 1) begin
+                transaction tr = new();
+                tr.rcvd_on_A = 1;
+                tr.actual_rx_data_A = vif.spy_rx_data_A; // Actual FIFO input capture kiya
+                
+                $display("[MON] Side A Received Internally: %h", tr.actual_rx_data_A);
+                mon2scb.put(tr);
+            end
+
+            // --- CHECK SIDE B RECEIVER ---
+            if (vif.spy_rx_valid_B == 1) begin
+                transaction tr = new();
+                tr.rcvd_on_B = 1;
+                tr.actual_rx_data_B = vif.spy_rx_data_B; // Actual FIFO input capture kiya
+                
+                $display("[MON] Side B Received Internally: %h", tr.actual_rx_data_B);
+                mon2scb.put(tr);
+            end
+        end
+    endtask
+endclass

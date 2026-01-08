@@ -1,0 +1,2 @@
+1.Change to source file location
+2.  in questa transcript window type "do run.do"
