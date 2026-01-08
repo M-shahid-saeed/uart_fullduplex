@@ -73,7 +73,7 @@ The design is suitable for **FPGA / HDL-based systems** and follows standard UAR
 
 ## Author
 **Muhammad Shahid Saeed**  
-GitHub: https://github.com/M-shahid-saeed
+GitHub:https://github.com/M-shahid-saeed/uart_fullduplex
 
 ---
 
