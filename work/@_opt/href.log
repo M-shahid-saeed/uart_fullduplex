@@ -1,0 +1,32 @@
+BEGIN 3:uart_intf:fast__1:work
+    clk :  1:tb_top_sv_unit:fast:work
+    data_in_A :  1:tb_top_sv_unit:fast:work
+    spy_rx_valid_A :  1:tb_top_sv_unit:fast:work
+    spy_rx_data_A :  1:tb_top_sv_unit:fast:work
+    tx_start_B :  1:tb_top_sv_unit:fast:work
+    rst :  1:tb_top_sv_unit:fast:work
+    spy_rx_data_B :  1:tb_top_sv_unit:fast:work
+    data_in_B :  1:tb_top_sv_unit:fast:work
+    tx_start_A :  1:tb_top_sv_unit:fast:work
+    spy_rx_valid_B :  1:tb_top_sv_unit:fast:work
+END 
+BEGIN 3:uart_intf:fast__2:work
+    tx_start_A :  1:tb_top:fast:work
+    rx_done_B :  1:tb_top:fast:work
+    tx_A :  1:tb_top:fast:work
+    tx_done_B :  1:tb_top:fast:work
+    fifo_data_A :  1:tb_top:fast:work
+    tx_start_B :  1:tb_top:fast:work
+    clk :  1:tb_top:fast:work
+    tx_B :  1:tb_top:fast:work
+    data_in_A :  1:tb_top:fast:work
+    fifo_data_B :  1:tb_top:fast:work
+    rx_done_A :  1:tb_top:fast:work
+    tx_done_A :  1:tb_top:fast:work
+    rst :  1:tb_top:fast:work
+    data_in_B :  1:tb_top:fast:work
+END 
+BEGIN 1:fifo:fast:work
+    data_in :  3:uart_intf:fast__2:work
+    wr_en :  3:uart_intf:fast__2:work
+END 

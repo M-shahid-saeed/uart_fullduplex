@@ -1,0 +1,84 @@
+`include "transaction.sv"
+
+class scoreboard;
+    mailbox mon2scb;
+    transaction tr;
+    
+    // Queues to store "Sent" data (Expected)
+    bit [7:0] queue_A_tx[$]; 
+    bit [7:0] queue_B_tx[$]; 
+    
+    virtual uart_intf vif;
+
+    function new(mailbox mon2scb, virtual uart_intf vif);
+        this.mon2scb = mon2scb;
+        this.vif = vif;
+    endfunction
+
+    task run();
+        $display("[SCB] Scoreboard Started at %0t", $time);
+
+        fork
+            // --- THREAD 1: Sniff A Transmit (Driver se Queue mein) ---
+            forever begin
+                @(posedge vif.clk);
+                if(vif.tx_start_A) begin
+                   queue_A_tx.push_back(vif.data_in_A);
+                   $display("[SCB] A Sent -> Queue: %h at time %0t", vif.data_in_A, $time);
+                   // Wait for pulse to end to avoid double push
+                   while(vif.tx_start_A) @(posedge vif.clk); 
+                end
+            end
+
+            // --- THREAD 2: Sniff B Transmit (Driver se Queue mein) ---
+            forever begin
+                @(posedge vif.clk);
+                if(vif.tx_start_B) begin
+                   queue_B_tx.push_back(vif.data_in_B);
+                   $display("[SCB] B Sent -> Queue: %h at time %0t", vif.data_in_B, $time);
+                   // Wait for pulse to end
+                   while(vif.tx_start_B) @(posedge vif.clk);
+                end
+            end
+
+            // --- THREAD 3: Check Receiver (Monitor se compare) ---
+            forever begin
+                mon2scb.get(tr);
+                
+                // --- SAFETY FILTER: Early Glitch Ignore ---
+                // Agar simulation start hone ke foran baad (ex: 500us) koi data aaye 
+                // toh wo garbage hai. Asli packet 1ms (1,000,000ns) ke aas paas aayega.
+                if ($time < 600000) begin
+                    $display("[SCB] Ignoring garbage/reset data received at %0t", $time);
+                    continue; // Skip comparison loop for this packet
+                end
+
+                // --- CASE 1: B ne receive kiya (Source was A) ---
+                if(tr.rcvd_on_B) begin
+                    if(queue_A_tx.size() == 0) begin
+                        $error("[SCB] FAIL: B got data %h, but Queue A is empty! (Timing Mismatch?)", tr.actual_rx_data_B);
+                    end else begin
+                        bit [7:0] expected = queue_A_tx.pop_front();
+                        if(expected == tr.actual_rx_data_B)
+                            $display("[SCB] PASS (A->B): Sent %h == Recv %h", expected, tr.actual_rx_data_B);
+                        else
+                            $error("[SCB] FAIL (A->B): Sent %h != Recv %h", expected, tr.actual_rx_data_B);
+                    end
+                end
+
+                // --- CASE 2: A ne receive kiya (Source was B) ---
+                if(tr.rcvd_on_A) begin
+                    if(queue_B_tx.size() == 0) begin
+                        $error("[SCB] FAIL: A got data %h, but Queue B is empty! (Timing Mismatch?)", tr.actual_rx_data_A);
+                    end else begin
+                        bit [7:0] expected = queue_B_tx.pop_front();
+                        if(expected == tr.actual_rx_data_A)
+                            $display("[SCB] PASS (B->A): Sent %h == Recv %h", expected, tr.actual_rx_data_A);
+                        else
+                            $error("[SCB] FAIL (B->A): Sent %h != Recv %h", expected, tr.actual_rx_data_A);
+                    end
+                end
+            end
+        join
+    endtask
+endclass

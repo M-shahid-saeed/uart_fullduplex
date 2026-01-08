@@ -1,0 +1,53 @@
+class driver;
+    transaction tr;
+    mailbox gen2driv;
+    virtual uart_intf vif;
+    
+    function new(mailbox gen2driv, virtual uart_intf vif);
+        this.gen2driv = gen2driv;
+        this.vif = vif;
+    endfunction
+    
+    task run();
+        // Initialize signals
+        vif.rst <= 1;
+        vif.tx_start_A <= 0;
+        vif.data_in_A <= 0;
+        vif.tx_start_B <= 0;
+        vif.data_in_B <= 0;
+        
+        // Reset Logic
+        repeat(5) @(posedge vif.clk);
+        vif.rst <= 0;
+        $display("[DRV] Reset Released.");
+        
+        // Wait for system to stabilize
+        @(posedge vif.clk);
+
+        forever begin
+            // 1. Get Transaction
+            gen2driv.get(tr);
+            
+            // 2. Drive Data & Assert Start (Pulse Start)
+            @(posedge vif.clk);
+            vif.data_in_A <= tr.data_in_A;
+            vif.data_in_B <= tr.data_in_B;
+            vif.tx_start_A <= 1'b1; // Start Pulse High
+            vif.tx_start_B <= 1'b1; 
+            
+            $display("[DRV] Driving: A=0x%h | B=0x%h at time %0t", tr.data_in_A, tr.data_in_B, $time);
+
+            // 3. De-assert Start (Pulse End)
+            @(posedge vif.clk);
+            vif.tx_start_A <= 1'b0; 
+            vif.tx_start_B <= 1'b0;
+
+            // 4. FIXED DELAY WAIT (Aapki requirement)
+            // Yahan hum packet bhejne ke baad specific time wait kar rahe hain
+            // taake UART transmission complete ho jaye.
+            #(519571); 
+            
+            $display("[DRV] Wait of 520835ns complete. Ready for next packet at %0t", $time);
+        end
+    endtask
+endclass

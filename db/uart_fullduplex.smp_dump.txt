@@ -1,0 +1,28 @@
+
+State Machine - |uart_full_duplex_top|uart_top:uartB|uart_rx_top:uart_rx_inst|uart_rx:uart_rx_inst|state
+Name state.STOP_BIT state.RECEIVE_DATA state.START_BIT state.IDLE 
+state.IDLE 0 0 0 0 
+state.START_BIT 0 0 1 1 
+state.RECEIVE_DATA 0 1 0 1 
+state.STOP_BIT 1 0 0 1 
+
+State Machine - |uart_full_duplex_top|uart_top:uartB|uart_tx_top:uart_tx_inst|shift_register_tx:shift_tx_inst|state
+Name state.SKIP state.TRANSMIT state.LOAD state.IDLE 
+state.IDLE 0 0 0 0 
+state.LOAD 0 0 1 1 
+state.TRANSMIT 0 1 0 1 
+state.SKIP 1 0 0 1 
+
+State Machine - |uart_full_duplex_top|uart_top:uartA|uart_rx_top:uart_rx_inst|uart_rx:uart_rx_inst|state
+Name state.STOP_BIT state.RECEIVE_DATA state.START_BIT state.IDLE 
+state.IDLE 0 0 0 0 
+state.START_BIT 0 0 1 1 
+state.RECEIVE_DATA 0 1 0 1 
+state.STOP_BIT 1 0 0 1 
+
+State Machine - |uart_full_duplex_top|uart_top:uartA|uart_tx_top:uart_tx_inst|shift_register_tx:shift_tx_inst|state
+Name state.SKIP state.TRANSMIT state.LOAD state.IDLE 
+state.IDLE 0 0 0 0 
+state.LOAD 0 0 1 1 
+state.TRANSMIT 0 1 0 1 
+state.SKIP 1 0 0 1 
